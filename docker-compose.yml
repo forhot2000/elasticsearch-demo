@@ -3,14 +3,14 @@ elasticsearch:
   ports:
     - 9200:9200
 
-elasticsearch-curator:
-  build: ./elasticsearch-curator
+curator:
+  build: ./curator
   working_dir: /root/.curator
   command: curator --config curator.yml actions.yml
   links:
     - elasticsearch:elasticsearch
   volumes:
-    - ./elasticsearch-curator/config:/root/.curator
+    - ./curator/config:/root/.curator
 
 kibana:
   build: ./kibana
@@ -33,13 +33,14 @@ es-logs:
   volumes:
     - ./es-logs/config:/root/config
     - /var/log/test
+    - /usr/local/lib/filebeat-5.0.2-linux-x86_64/data
 
 es-logs-generator:
   image: ubuntu:14.04
   working_dir: /root/scripts
   command: ./generate.sh
   volumes:
-    - ./es-logs-generator/scripts:/root/scripts/es-logs-generator
+    - ./es-logs-generator/scripts:/root/scripts
   volumes_from:
     - es-logs
 
