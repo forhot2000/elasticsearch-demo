@@ -52,8 +52,11 @@ es-mongo:
   volumes:
     - ./es-mongo/config:/root/config
 
-es-mongo-dashboard:
+beats-dashboards:
   image: beats
   net: service:mongo
   working_dir: /usr/local/lib/packetbeat-5.0.2-linux-x86_64
-  command: ./scripts/import_dashboards -es http://elasticsearch:9200 -user elastic -pass changeme -file /usr/local/lib/beats-dashboards-5.0.2.zip -beat ''
+  command: >
+    ./scripts/import_dashboards -es http://elasticsearch:9200 
+    -user elastic -pass changeme 
+    -file /usr/local/lib/beats-dashboards-5.0.2.zip -beat ''
