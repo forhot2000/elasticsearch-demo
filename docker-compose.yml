@@ -1,0 +1,58 @@
+elasticsearch:
+  build: ./elasticsearch
+  ports:
+    - 9200:9200
+
+elasticsearch-curator:
+  build: ./elasticsearch-curator
+  working_dir: /root/.curator
+  command: curator --config curator.yml actions.yml
+  links:
+    - elasticsearch:elasticsearch
+  volumes:
+    - ./elasticsearch-curator/config:/root/.curator
+
+kibana:
+  build: ./kibana
+  ports:
+    - 5601:5601
+  links:
+    - elasticsearch:elasticsearch
+
+mongo:
+  image: mongo:3.2
+  links:
+    - elasticsearch:elasticsearch
+
+es-logs:
+  image: beats
+  working_dir: /usr/local/lib/filebeat-5.0.2-linux-x86_64
+  command: ./filebeat -e -c /root/config/filebeat.yml
+  links:
+    - elasticsearch:elasticsearch
+  volumes:
+    - ./es-logs/config:/root/config
+    - /var/log/test
+
+es-logs-generator:
+  image: ubuntu:14.04
+  working_dir: /root/scripts
+  command: ./generate.sh
+  volumes:
+    - ./es-logs-generator/scripts:/root/scripts/es-logs-generator
+  volumes_from:
+    - es-logs
+
+es-mongo:
+  image: beats
+  net: service:mongo
+  working_dir: /usr/local/lib/packetbeat-5.0.2-linux-x86_64
+  command: ./packetbeat -e -c /root/config/packetbeat.yml
+  volumes:
+    - ./es-mongo/config:/root/config
+
+es-mongo-dashboard:
+  image: beats
+  net: service:mongo
+  working_dir: /usr/local/lib/packetbeat-5.0.2-linux-x86_64
+  command: ./scripts/import_dashboards -es http://elasticsearch:9200 -user elastic -pass changeme -file /usr/local/lib/beats-dashboards-5.0.2.zip -beat ''
